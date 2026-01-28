@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>音テスト</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  background:black;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+button{
+  font-size:28px;
+  padding:30px 50px;
+}
+</style>
+</head>
+<body>
+
+<button id="btn">🔊 テスト音</button>
+
+<script>
+document.getElementById("btn").addEventListener("click", () => {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  const osc = ctx.createOscillator();
+  osc.type = "sine";       // 一番聞こえやすい
+  osc.frequency.value = 880; // キンキン音
+
+  const gain = ctx.createGain();
+  gain.gain.value = 1.0;   // 最大
+
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+
+  setTimeout(() => {
+    osc.stop();
+    ctx.close();
+  }, 500); // 0.5秒鳴らす
+});
+</script>
+
+</body>
+</html>
