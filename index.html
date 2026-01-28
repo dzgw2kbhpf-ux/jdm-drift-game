@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>GX71 サウンドテスト</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+button{
+  font-size:28px;
+  padding:30px 60px;
+  background:#c00;
+  color:white;
+  border:none;
+  border-radius:16px;
+}
+</style>
+</head>
+<body>
+
+<button id="btn">▶ 音を鳴らす</button>
+
+<audio id="audio" crossorigin="anonymous">
+  <source src="sounds/video-output-E1E478D7-8EF9-4800-9467-5685FCF4DD36.mp3">
+</audio>
+
+<script>
+const btn = document.getElementById("btn");
+const audio = document.getElementById("audio");
+
+let ctx, source, gain;
+
+btn.addEventListener("touchstart", start);
+btn.addEventListener("mousedown", start);
+
+function start(){
+  if(!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    source = ctx.createMediaElementSource(audio);
+    gain = ctx.createGain();
+
+    gain.gain.value = 3.0; // ★ 音量3倍（重要）
+
+    source.connect(gain);
+    gain.connect(ctx.destination);
+  }
+
+  audio.currentTime = 0;
+  audio.play();
+}
+</script>
+
+</body>
+</html>
