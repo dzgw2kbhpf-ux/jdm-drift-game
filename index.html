@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>暴走族 空ぶかし</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+#ui{text-align:center;}
+button{
+  font-size:28px;
+  padding:24px 48px;
+  border:none;
+  border-radius:14px;
+  background:#c00;
+  color:white;
+}
+p{opacity:0.7;}
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <h1>GX71 マークII</h1>
+  <button id="rev">🔥 空ぶかし</button>
+  <p>直管・暴走族仕様（爆音注意）</p>
+</div>
+
+<script>
+let ctx = null;
+
+document.getElementById("rev").addEventListener("click", () => {
+  if(!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  const t = ctx.currentTime;
+
+  // === 低音（エンジン） ===
+  const low = ctx.createOscillator();
+  low.type = "sawtooth";
+  low.frequency.setValueAtTime(120, t);
+  low.frequency.linearRampToValueAtTime(320, t + 0.15);
+  low.frequency.linearRampToValueAtTime(140, t + 0.7);
+
+  const lowGain = ctx.createGain();
+  lowGain.gain.setValueAtTime(0.9, t);
+  lowGain.gain.linearRampToValueAtTime(0.0, t + 0.8);
+
+  // === 高音（直管キンキン） ===
+  const high = ctx.createOscillator();
+  high.type = "square";
+  high.frequency.setValueAtTime(800, t);
+  high.frequency.linearRampToValueAtTime(1600, t + 0.12);
+  high.frequency.linearRampToValueAtTime(600, t + 0.6);
+
+  const highGain = ctx.createGain();
+  highGain.gain.setValueAtTime(0.6, t);
+  highGain.gain.linearRampToValueAtTime(0.0, t + 0.7);
+
+  // === ノイズ（バリバリ） ===
+  const buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++){
+    data[i] = (Math.random()*2-1);
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.7, t);
+  noiseGain.gain.linearRampToValueAtTime(0.0, t + 0.5);
+
+  // === 接続 ===
+  low.connect(lowGain).connect(ctx.destination);
+  high.connect(highGain).connect(ctx.destination);
+  noise.connect(noiseGain).connect(ctx.destination);
+
+  // === 再生 ===
+  low.start(t);
+  high.start(t);
+  noise.start(t);
+
+  low.stop(t + 0.9);
+  high.stop(t + 0.9);
+  noise.stop(t + 0.6);
+});
+</script>
+
+</body>
+</html>
