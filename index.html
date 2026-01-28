@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JDM Drift Custom</title>
+<style>
+body {
+  margin:0;
+  background:#0a0a0a;
+  color:#fff;
+  font-family:sans-serif;
+  text-align:center;
+}
+#track {
+  position: relative;
+  margin: 20px auto;
+  width: 90%;
+  height: 260px;
+  background: linear-gradient(#333, #222);
+  border-radius: 20px;
+  overflow: hidden;
+}
+#road {
+  position:absolute;
+  width: 200%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #555 0 40px,
+    #666 40px 80px
+  );
+}
+#car {
+  position:absolute;
+  bottom:50px;
+  left:45%;
+  width:50px;
+  height:90px;
+  background:red;
+  border-radius:10px;
+}
+
+/* 外装パーツ */
+#bumper {
+  position:absolute;
+  bottom:-10px;
+  left:-5px;
+  width:60px;
+  height:12px;
+  background:#222;
+  border-radius:6px;
+}
+#wing {
+  position:absolute;
+  top:-12px;
+  left:-10px;
+  width:70px;
+  height:8px;
+  background:#111;
+  display:none;
+}
+#skirt {
+  position:absolute;
+  bottom:15px;
+  left:-5px;
+  width:60px;
+  height:6px;
+  background:#000;
+  display:none;
+}
+
+.wheel {
+  position:absolute;
+  bottom:-10px;
+  width:14px;
+  height:14px;
+  background:black;
+  border-radius:50%;
+}
+#w1 { left:4px }
+#w2 { right:4px }
+
+button, select {
+  font-size:14px;
+  margin:4px;
+  padding:6px;
+}
+</style>
+</head>
+<body>
+
+<h2>🇯🇵 JDM DRIFT CUSTOM</h2>
+
+<div>
+🎨<select id="colorSel">
+<option value="red">赤</option>
+<option value="white">白</option>
+<option value="black">黒</option>
+<option value="yellow">黄</option>
+</select>
+
+🛞<select id="wheelSel">
+<option value="14">小</option>
+<option value="18">中</option>
+<option value="22">大</option>
+</select>
+
+⬇<select id="heightSel">
+<option value="40">低</option>
+<option value="55">中</option>
+<option value="70">高</option>
+</select>
+</div>
+
+<div>
+🟥<select id="bumperSel">
+<option value="normal">ノーマル</option>
+<option value="sport">スポーツ</option>
+<option value="race">レーシング</option>
+</select>
+
+🟦<select id="wingSel">
+<option value="none">なし</option>
+<option value="gt">GT</option>
+<option value="big">大型</option>
+</select>
+
+⚫<select id="skirtSel">
+<option value="none">なし</option>
+<option value="carbon">カーボン</option>
+<option value="wide">ワイド</option>
+</select>
+</div>
+
+<button onclick="save()">💾セーブ</button>
+<button onclick="load()">📂ロード</button>
+<button onclick="startBGM()">🎵BGM</button>
+
+<div id="track">
+  <div id="road"></div>
+  <div id="car">
+    <div id="wing"></div>
+    <div id="bumper"></div>
+    <div id="skirt"></div>
+    <div id="w1" class="wheel"></div>
+    <div id="w2" class="wheel"></div>
+  </div>
+</div>
+
+<button onclick="turn(-1)">⬅</button>
+<button onclick="turn(1)">➡</button>
+<button onclick="start()">🏁 START</button>
+
+<p id="status"></p>
+
+<script>
+let roadX=0, drifting=false, score=0;
+const car=document.getElementById("car");
+
+function apply(){
+  car.style.background=colorSel.value;
+  document.querySelectorAll(".wheel").forEach(w=>{
+    w.style.width=wheelSel.value+"px";
+    w.style.height=wheelSel.value+"px";
+  });
+  car.style.bottom=heightSel.value+"px";
+
+  bumper.style.height = bumperSel.value=="race"? "18px":
+                        bumperSel.value=="sport"? "14px":"10px";
+
+  wing.style.display = wingSel.value=="none"?"none":"block";
+  wing.style.width = wingSel.value=="big"?"90px":"70px";
+
+  skirt.style.display = skirtSel.value=="none"?"none":"block";
+  skirt.style.height = skirtSel.value=="wide"?"10px":"6px";
+}
+document.querySelectorAll("select").forEach(s=>s.onchange=apply);
+
+function start(){
+  score=0; drifting=true; loop();
+}
+function loop(){
+  if(!drifting) return;
+  roadX-=4;
+  road.style.transform=`translateX(${roadX}px)`;
+  requestAnimationFrame(loop);
+}
+function turn(d){
+  if(!drifting) return;
+  car.style.transform=`rotate(${d*15}deg)`;
+  score+=10;
+  status.textContent="🔥 SCORE "+score;
+  setTimeout(()=>car.style.transform="rotate(0deg)",120);
+}
+
+function save(){
+  localStorage.setItem("jdm_ext",JSON.stringify({
+    c:colorSel.value,w:wheelSel.value,h:heightSel.value,
+    b:bumperSel.value,wi:wingSel.value,s:skirtSel.value
+  }));
+  status.textContent="💾 セーブ完了";
+}
+function load(){
+  let d=JSON.parse(localStorage.getItem("jdm_ext"));
+  if(!d) return;
+  colorSel.value=d.c; wheelSel.value=d.w; heightSel.value=d.h;
+  bumperSel.value=d.b; wingSel.value=d.wi; skirtSel.value=d.s;
+  apply();
+}
+let ctx,osc,gain;
+function startBGM(){
+  ctx=new (AudioContext||webkitAudioContext)();
+  osc=ctx.createOscillator(); gain=ctx.createGain();
+  osc.type="sawtooth"; osc.frequency.value=140;
+  gain.gain.value=0.05;
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+}
+load();
+</script>
+
+</body>
+</html>
