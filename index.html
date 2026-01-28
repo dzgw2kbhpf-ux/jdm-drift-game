@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>GX71 アクセル</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+#wrap{text-align:center;}
+#pedal{
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:#c00;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:22px;
+  user-select:none;
+}
+#rpm{margin-top:20px;opacity:0.8;}
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <h1>GX71 マークII</h1>
+  <div id="pedal">ACCEL</div>
+  <div id="rpm">RPM: 800</div>
+</div>
+
+<audio id="engine"
+  src="sounds/video-output-E1E478D7-8EF9-4800-9467-5685FCF4DD36.mp3"
+  loop
+></audio>
+
+<script>
+const engine = document.getElementById("engine");
+const pedal = document.getElementById("pedal");
+const rpmText = document.getElementById("rpm");
+
+let rpm = 800;
+let accel = false;
+let started = false;
+
+// 最初のタップで「一生再生」
+function startAudio(){
+  if(started) return;
+  engine.volume = 0.0;          // 最初は無音
+  engine.playbackRate = 0.7;
+  engine.play();                // ← ここがSafari的に超重要
+  started = true;
+}
+
+// 押してる間
+function press(){
+  startAudio();
+  accel = true;
+}
+
+// 離したら
+function release(){
+  accel = false;
+}
+
+pedal.addEventListener("touchstart", press);
+pedal.addEventListener("mousedown", press);
+pedal.addEventListener("touchend", release);
+pedal.addEventListener("mouseup", release);
+
+// 回転＆音制御（実車寄せ）
+setInterval(()=>{
+  if(accel){
+    // 加速：重く、遅め
+    rpm += 70;
+    if(rpm > 5000) rpm = 5000;
+  }else{
+    // 減速：自然落ち
+    rpm -= 120;
+    if(rpm < 800) rpm = 800;
+  }
+
+  // 音量：踏んだら出る、離したら小さく
+  engine.volume = accel ? 1.0 : 0.15;
+
+  // ピッチ：回転数に比例
+  engine.playbackRate = 0.6 + (rpm / 6500);
+
+  rpmText.textContent = "RPM: " + rpm;
+}, 60);
+</script>
+
+</body>
+</html>
