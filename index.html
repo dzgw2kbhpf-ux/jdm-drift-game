@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>GX71 発進</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<button onclick="play()">🚗 発進</button>
+
+<audio id="engine" src="sounds/ここを自分のmp3名にする.mp3"></audio>
+
+<script>
+function play(){
+  const a = document.getElementById("engine");
+  a.pause();
+  a.currentTime = 0;
+  a.volume = 1.0;
+  a.play();
+}
+</script>
+
+</body>
+</html>
