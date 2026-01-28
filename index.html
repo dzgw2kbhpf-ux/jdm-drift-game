@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>暴走族 空ぶかし</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+#ui{text-align:center;}
+button{
+  font-size:26px;
+  padding:22px 44px;
+  border:none;
+  border-radius:14px;
+  background:#c00;
+  color:white;
+}
+p{opacity:0.7;}
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <h1>GX71 マークII</h1>
+  <button id="rev">🔥 空ぶかし</button>
+  <p>直管・暴走族仕様（爆音注意）</p>
+</div>
+
+<audio id="a"
+src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAAAAP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//AP//">
+</audio>
+
+<script>
+const a = document.getElementById("a");
+
+function rev(){
+  // iOS Safariはこれが一番通る
+  a.pause();
+  a.currentTime = 0;
+
+  // 回転数っぽくピッチ変更
+  a.playbackRate = 0.8 + Math.random()*0.8;
+
+  a.volume = 1.0;
+  a.play();
+}
+
+// touchstart を最優先
+const btn = document.getElementById("rev");
+btn.addEventListener("touchstart", rev);
+btn.addEventListener("mousedown", rev);
+</script>
+
+</body>
+</html>
