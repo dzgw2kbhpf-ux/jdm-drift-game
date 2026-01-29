@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Mazda 787B</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    #title {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-size: 16px;
+      z-index: 10;
+    }
+    #status {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      color: #0f0;
+      font-size: 14px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+<div id="title">Mazda 787B</div>
+<div id="status">loading...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+  const status = document.getElementById("status");
+
+  // シーン
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+
+  // カメラ（かなり引き気味）
+  const camera = new THREE.PerspectiveCamera(
+    50,
+    window.innerWidth / window.innerHeight,
+    0.01,
+    100
+  );
+  camera.position.set(0, 1.5, 5);
+
+  // レンダラー
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
+
+  // ライト（超重要）
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+
+  const dir = new THREE.DirectionalLight(0xffffff, 1.5);
+  dir.position.set(5, 10, 5);
+  scene.add(dir);
+
+  // glTF ローダー
+  const loader = new THREE.GLTFLoader();
+  loader.load(
+    "scene.gltf",
+    (gltf) => {
+      const model = gltf.scene;
+
+      // 強制的に全部表示ON
+      model.traverse((obj) => {
+        if (obj.isMesh) {
+          obj.visible = true;
+          obj.frustumCulled = false;
+        }
+      });
+
+      model.position.set(0, 0, 0);
+      model.scale.set(1, 1, 1);
+
+      scene.add(model);
+      status.textContent = "loaded";
+    },
+    undefined,
+    (err) => {
+      console.error(err);
+      status.textContent = "load error";
+    }
+  );
+
+  // リサイズ
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // 描画
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+  animate();
+</script>
+
+</body>
+</html>
