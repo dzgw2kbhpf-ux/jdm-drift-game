@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GX71 空ぶかし</title>
+</head>
+
+<body style="
+background:black;
+color:white;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+height:100vh;
+font-family:sans-serif;
+">
+
+<h1>GX71 マークII 空ぶかし🔥</h1>
+
+<button id="rev"
+style="
+font-size:30px;
+padding:30px 60px;
+background:red;
+color:white;
+border:none;
+border-radius:10px;
+">
+アクセル
+</button>
+
+<audio id="engine" preload="auto">
+  <source src="video-output-E1E478D7-8EF9-4800-9467-5685FCF4DD36.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const audio = document.getElementById("engine");
+const btn = document.getElementById("rev");
+
+audio.loop = true;
+audio.volume = 1.0;
+
+btn.addEventListener("touchstart", () => {
+  audio.playbackRate = 1.0;
+  audio.currentTime = 0;
+  audio.play();
+});
+
+btn.addEventListener("touchend", () => {
+  audio.pause();
+});
+</script>
+
+</body>
+</html>
