@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>RX-7 FD Driving Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: #111;
+  overflow: hidden;
+  font-family: system-ui;
+}
+
+/* ===== HUD ===== */
+#hud {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  color: #7CFF00;
+  font-size: 18px;
+  text-align: right;
+  z-index: 10;
+}
+#speed {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* ===== 操作UI ===== */
+#ui {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 0 10px;
+  z-index: 10;
+}
+
+button {
+  padding: 16px 0;
+  font-size: 16px;
+  background: #111;
+  color: #7CFF00;
+  border: 2px solid #7CFF00;
+  border-radius: 8px;
+}
+button:active {
+  background: #7CFF00;
+  color: black;
+}
+</style>
+</head>
+
+<body>
+
+<div id="hud">
+  SPEED<br>
+  <div id="speed">0</div>
+  km/h
+</div>
+
+<model-viewer
+  id="car"
+  src="scene.glb"
+  camera-controls
+  exposure="1.1"
+  shadow-intensity="1"
+  style="width:100vw;height:100vh;">
+</model-viewer>
+
+<div id="ui">
+  <button id="left">LEFT</button>
+  <button id="accel">ACCEL</button>
+  <button id="brake">BRAKE</button>
+  <button id="right">RIGHT</button>
+</div>
+
+<script>
+const car = document.getElementById("car");
+const speedEl = document.getElementById("speed");
+
+let speed = 0;
+let targetSpeed = 0;
+
+let steer = 0;
+let targetSteer = 0;
+
+let pitch = 0;
+let roll = 0;
+let yaw = 0;
+
+/* ===== 入力 ===== */
+const hold = (btn, fn)=>{
+  btn.ontouchstart = btn.onmousedown = fn;
+  btn.ontouchend = btn.onmouseup = ()=>fn(false);
+};
+
+hold(accel, v=> targetSpeed = v===false ? 0 : 1);
+hold(brake, v=> targetSpeed = v===false ? 0 : -1);
+hold(left,  v=> targetSteer = v===false ? 0 : -1);
+hold(right, v=> targetSteer = v===false ? 0 : 1);
+
+/* ===== メインループ ===== */
+function update(){
+  // スピード
+  speed += (targetSpeed - speed) * 0.06;
+  speed = Math.max(-0.2, Math.min(speed, 1));
+
+  // ステア
+  steer += (targetSteer - steer) * 0.12;
+
+  // 表示用スピード
+  const kmh = Math.abs(speed * 180);
+  speedEl.textContent = kmh.toFixed(0);
+
+  // ピッチ（加減速）
+  pitch += ((-speed * 8) - pitch) * 0.15;
+
+  // ロール（横G）
+  roll += ((-steer * Math.abs(speed) * 10) - roll) * 0.15;
+
+  // ヨー（向き）
+  yaw += steer * Math.abs(speed) * 0.6;
+
+  // 振動
+  const shake =
+    Math.sin(Date.now() * 0.03) * Math.abs(speed) * 0.4;
+
+  car.style.transform = `
+    translateY(${shake}px)
+    rotateX(${pitch}deg)
+    rotateY(${yaw}deg)
+    rotateZ(${roll}deg)
+  `;
+
+  requestAnimationFrame(update);
+}
+update();
+</script>
+
+</body>
+</html>
