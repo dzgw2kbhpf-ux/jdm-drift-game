@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Mazda RX-7 FD Showcase</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: #111;
+  overflow: hidden;
+  font-family: system-ui;
+}
+
+#title {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: white;
+  font-size: 16px;
+  letter-spacing: 0.05em;
+}
+
+model-viewer {
+  width: 100vw;
+  height: 100vh;
+  --progress-bar-color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div id="title">Mazda RX-7 FD</div>
+
+<model-viewer
+  src="scene.glb"
+  camera-controls
+  auto-rotate
+  auto-rotate-delay="0"
+  rotation-per-second="12deg"
+  exposure="1.15"
+  shadow-intensity="1"
+  shadow-softness="0.8"
+  environment-image="neutral"
+  style="background-color:#111;">
+
+  <!-- 白くて丸い台座 -->
+  <div
+    slot="poster"
+    style="
+      position:absolute;
+      bottom:12%;
+      left:50%;
+      width:260px;
+      height:60px;
+      background:white;
+      border-radius:50%;
+      transform:translateX(-50%);
+      filter:blur(1px);
+      opacity:0.95;
+    ">
+  </div>
+
+</model-viewer>
+
+</body>
+</html>
