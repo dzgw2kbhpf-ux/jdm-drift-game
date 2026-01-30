@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>RX-7 FD Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    #title {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-size: 16px;
+      z-index: 10;
+    }
+    #loading {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      color: #7CFF00;
+      font-size: 14px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="title">Mazda RX-7 FD</div>
+  <div id="loading">loading...</div>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.155/build/three.module.js";
+    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.155/examples/jsm/loaders/GLTFLoader.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.155/examples/jsm/controls/OrbitControls.js";
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 10000);
+    camera.position.set(0, 1, 5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+
+    const light = new THREE.DirectionalLight(0xffffff, 1.5);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const loader = new GLTFLoader();
+    loader.load(
+      "./scene.glb",
+      (gltf) => {
+        const model = gltf.scene;
+
+        // 🔑 モデルを中央に寄せる
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center);
+
+        // 🔑 サイズを自動調整
+        const size = box.getSize(new THREE.Vector3()).length();
+        const scale = 3 / size;
+        model.scale.setScalar(scale);
+
+        scene.add(model);
+
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        document.getElementById("loading").style.display = "none";
+      },
+      undefined,
+      (error) => {
+        console.error(error);
+        document.getElementById("loading").textContent = "failed to load model";
+      }
+    );
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
