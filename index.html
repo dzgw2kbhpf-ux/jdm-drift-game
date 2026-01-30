@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>787B Rotary Low Sound</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  overflow: hidden;
+  font-family: system-ui;
+}
+#title {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+}
+#ui {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+button {
+  padding: 14px 22px;
+  font-size: 16px;
+  background: #111;
+  color: #7CFF00;
+  border: 1px solid #7CFF00;
+  border-radius: 6px;
+}
+button:active {
+  background: #7CFF00;
+  color: black;
+}
+</style>
+</head>
+
+<body>
+
+<div id="title">Mazda Rotary Engine</div>
+
+<model-viewer
+  src="scene.glb"
+  camera-controls
+  exposure="1.1"
+  shadow-intensity="1"
+  style="width:100vw;height:100vh;">
+</model-viewer>
+
+<div id="ui">
+  <button id="start">START</button>
+  <button id="accel">ACCEL</button>
+</div>
+
+<script>
+/* ===== ULTRA LOW REAL ROTARY ===== */
+let audioCtx;
+let subOsc, subGain;
+let dirtOsc, dirtGain;
+let noiseSrc, noiseGain;
+
+let rpm = 0;
+let targetRPM = 0;
+let engineOn = false;
+
+const idleRPM = 900;
+const maxRPM = 10000;
+
+function startEngine(){
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  /* 超低音の芯（ほぼ動かない） */
+  subOsc = audioCtx.createOscillator();
+  subOsc.type = "sine";
+  subOsc.frequency.value = 28;
+  subGain = audioCtx.createGain();
+  subGain.gain.value = 0.6;
+  subOsc.start();
+
+  /* ドロドロ成分（歪んだ低音） */
+  dirtOsc = audioCtx.createOscillator();
+  dirtOsc.type = "triangle";
+  dirtOsc.frequency.value = 18;
+  dirtGain = audioCtx.createGain();
+  dirtGain.gain.value = 0.0;
+  dirtOsc.start();
+
+  /* 不規則爆発ノイズ */
+  const bufferSize = audioCtx.sampleRate * 2;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++){
+    data[i] = (Math.random()*2-1) * 0.9;
+  }
+  noiseSrc = audioCtx.createBufferSource();
+  noiseSrc.buffer = buffer;
+  noiseSrc.loop = true;
+  noiseGain = audioCtx.createGain();
+  noiseGain.gain.value = 0.0;
+  noiseSrc.start();
+
+  subOsc.connect(subGain).connect(audioCtx.destination);
+  dirtOsc.connect(dirtGain).connect(audioCtx.destination);
+  noiseSrc.connect(noiseGain).connect(audioCtx.destination);
+
+  rpm = idleRPM;
+  targetRPM = idleRPM;
+  engineOn = true;
+}
+
+function updateSound(){
+  /* 回転の不規則さ */
+  let lowFactor = Math.max(0, 1 - rpm / 1800);
+  let shake = (Math.random() - 0.5) * lowFactor * 200;
+  let r = rpm + shake;
+
+  /* 音程はほぼ固定 */
+  subOsc.frequency.value = 26 + r * 0.0008;
+  dirtOsc.frequency.value = 16 + r * 0.0005;
+
+  /* 低回転ほどドロドロ */
+  dirtGain.gain.value = 0.15 + lowFactor * 0.35;
+  noiseGain.gain.value =
+    0.12 +
+    lowFactor * 0.35 +
+    (r / maxRPM) * 0.1;
+}
+
+/* 回転制御（ゆっくり・重い） */
+setInterval(()=>{
+  let speed = targetRPM > rpm ? 0.16 : 0.10;
+  rpm += (targetRPM - rpm) * speed;
+  updateSound();
+}, 35);
+
+/* UI */
+document.getElementById("start").onclick = ()=>{
+  if(!engineOn) startEngine();
+};
+document.getElementById("accel").ontouchstart =
+document.getElementById("accel").onmousedown = ()=>{
+  targetRPM = maxRPM;
+};
+document.getElementById("accel").ontouchend =
+document.getElementById("accel").onmouseup = ()=>{
+  targetRPM = idleRPM;
+};
+</script>
+
+</body>
+</html>
